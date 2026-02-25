@@ -54,10 +54,10 @@ jobs:
 
             echo "=== Starting deployment ==="
 
-            echo "=== Checking for docker-compose.prod.yml ==="
-            if [ ! -f "docker-compose.prod.yml" ]; then
-              echo "ERROR: docker-compose.prod.yml not found in root directory!"
-              echo "Please create docker-compose.prod.yml in the root directory"
+            echo "=== Checking for docker-compose.yml ==="
+            if [ ! -f "docker-compose.yml" ]; then
+              echo "ERROR: docker-compose.yml not found in root directory!"
+              echo "Please create docker-compose.yml in the root directory"
               exit 1
             fi
 
