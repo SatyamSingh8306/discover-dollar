@@ -2,6 +2,7 @@
 
 A full-stack CRUD application using the MEAN stack (MongoDB, Express, Angular 15, and Node.js) with complete containerization, CI/CD pipeline, and deployment automation.
 
+
 ## 🏗️ Architecture
 
 - **Frontend**: Angular 15 application with HTTPClient for API communication
