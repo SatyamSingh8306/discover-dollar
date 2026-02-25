@@ -10,19 +10,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors());
-const db = require("./app/models");
-db.mongoose
-  .connect(db.url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => {
-    console.log("Connected to the database!");
-  })
-  .catch(err => {
-    console.log("Cannot connect to the database!", err);
-    process.exit();
-  });
 
 // simple route
 app.get("/", (req, res) => {
@@ -30,6 +17,26 @@ app.get("/", (req, res) => {
 });
 
 require("./app/routes/turorial.routes")(app);
+
+// Database connection with retry logic
+const db = require("./app/models");
+const connectWithRetry = () => {
+  db.mongoose
+    .connect(db.url, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    })
+    .then(() => {
+      console.log("Connected to the database!");
+    })
+    .catch(err => {
+      console.log("Cannot connect to the database!", err);
+      console.log("Retrying in 5 seconds...");
+      setTimeout(connectWithRetry, 5000);
+    });
+};
+
+connectWithRetry();
 
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
