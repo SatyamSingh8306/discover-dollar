@@ -47,8 +47,30 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/ubuntu/mean-app || mkdir -p /home/ubuntu/mean-app
+
+            # Install Docker if not installed
+            if ! command -v docker &> /dev/null
+            then
+              echo "Docker not found. Installing Docker..."
+              sudo apt update
+              sudo apt install -y docker.io docker-compose-plugin
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              sudo usermod -aG docker ubuntu
+            else
+              echo "Docker already installed"
+            fi
+
+            # Ensure project directory exists
+            mkdir -p /home/ubuntu/mean-app
+            cd /home/ubuntu/mean-app
+
+            # Pull latest images
             docker compose pull
+
+            # Restart containers
             docker compose down
             docker compose up -d --force-recreate
+
+            # Clean unused images
             docker system prune -af
