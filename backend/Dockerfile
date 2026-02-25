@@ -3,7 +3,10 @@ FROM node:18-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --production
+
+# Clear npm cache and install using package-lock.json for deterministic builds
+RUN npm cache clean --force && \
+    npm ci --production --verbose
 
 COPY . .
 
