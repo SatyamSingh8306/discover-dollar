@@ -4,9 +4,9 @@ WORKDIR /app
 
 COPY package*.json ./
 
-# Clear npm cache and install using package-lock.json for deterministic builds
+# Clear npm cache and install dependencies
 RUN npm cache clean --force && \
-    npm ci --production --verbose
+    npm install --production --no-optional
 
 COPY . .
 
