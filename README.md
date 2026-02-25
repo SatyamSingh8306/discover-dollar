@@ -1,9 +1,40 @@
 # MEAN Stack CRUD Application with Docker & CI/CD
 
-A full-stack CRUD application using the MEAN stack (MongoDB, Express, Angular 15, and Node.js) with complete containerization, CI/CD pipeline, and deployment automation.
+A full-stack CRUD application using MEAN stack (MongoDB, Express, Angular 15, and Node.js) with complete containerization, CI/CD pipeline, and deployment automation.
 
+## Screenshots
 
-## 🏗️ Architecture
+### Application Screenshots
+
+![CRUD Application 1](assets/crud1.png)
+*Main application interface with tutorial list*
+
+![CRUD Application 2](assets/crud2.png)
+*Tutorial creation and editing form*
+
+### CI/CD Pipeline Screenshots
+
+![Docker Backend Build](assets/docker-backend-build.png)
+*Docker image build process for backend service*
+
+![Docker Repository](assets/docker-repo.png)
+*Docker Hub repository with built images*
+
+![Docker VM Deployment](assets/docker-run-vm.png)
+*Running containers on Ubuntu VM*
+
+### Configuration Screenshots
+
+![Nginx Configuration](assets/nginx-conf.png)
+*Nginx reverse proxy configuration*
+
+![GitHub Secrets](assets/secret.png)
+*GitHub repository secrets configuration*
+
+![Container Logs](assets/logs.png)
+*Container logs showing successful deployment*
+
+## Architecture
 
 - **Frontend**: Angular 15 application with HTTPClient for API communication
 - **Backend**: Node.js with Express providing REST APIs
@@ -12,7 +43,7 @@ A full-stack CRUD application using the MEAN stack (MongoDB, Express, Angular 15
 - **Containerization**: Docker & Docker Compose
 - **CI/CD**: GitHub Actions for automated deployment
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Docker and Docker Compose installed
 - Node.js 18+ (for local development)
@@ -21,7 +52,7 @@ A full-stack CRUD application using the MEAN stack (MongoDB, Express, Angular 15
 - GitHub repository
 - Ubuntu VM (for production deployment)
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Local Development
 
@@ -36,11 +67,11 @@ A full-stack CRUD application using the MEAN stack (MongoDB, Express, Angular 15
    ```bash
    cd frontend
    npm install
-   ng serve --port 8081
+   ng serve --port 4200
    ```
 
 3. **Access Application**
-   - Frontend: http://localhost:8081
+   - Frontend: http://localhost:4200
    - Backend API: http://localhost:8080
 
 ### Docker Development
@@ -50,130 +81,107 @@ A full-stack CRUD application using the MEAN stack (MongoDB, Express, Angular 15
    docker-compose up --build
    ```
 
-2. **Access Application via Nginx**
-   - http://localhost (via Nginx reverse proxy)
-   - Frontend: http://localhost:4200 (direct)
-   - Backend: http://localhost:8080 (direct)
+2. **Access Application**
+   - Frontend: http://localhost:4200
+   - Backend API: http://localhost:8080
+   - Through Nginx: http://localhost
 
-## 🐳 Docker Configuration
+## Docker Configuration
 
 ### Services
 
-- **mongodb**: MongoDB 6 database (port 27017)
-- **backend**: Node.js Express API (port 8080)
-- **frontend**: Angular application served by Nginx (port 4200)
-- **nginx**: Reverse proxy (port 80)
+- **MongoDB**: Port 27017 with data persistence
+- **Backend**: Node.js on port 8080
+- **Frontend**: Angular on port 4200
+- **Nginx**: Reverse proxy on port 80
 
 ### Environment Variables
 
-- `MONGO_URI`: MongoDB connection string (default: mongodb://mongodb:27017/cruddb)
+- **MONGO_URI**: MongoDB connection string
+- **DOCKER_USERNAME**: Docker Hub username
 
-## 🔄 CI/CD Pipeline
+## CI/CD Pipeline
 
-### GitHub Actions Setup
+### GitHub Actions Workflow
 
-1. **Repository Secrets Required:**
-   - `DOCKER_USERNAME`: Your Docker Hub username
-   - `DOCKER_PASSWORD`: Your Docker Hub password or access token
-   - `VM_IP`: Your Ubuntu VM public IP address
-   - `SSH_PRIVATE_KEY`: SSH private key for VM access
+1. **Trigger**: Push to master branch
+2. **Build**: Creates Docker images for frontend and backend
+3. **Push**: Uploads images to Docker Hub
+4. **Deploy**: Pulls images and runs containers on VM
 
-2. **Pipeline Triggers:**
-   - Automatically triggers on push to `main` branch
-   - Builds and pushes Docker images to Docker Hub
-   - Deploys to production VM via SSH
+### Required GitHub Secrets
 
-3. **Pipeline Steps:**
-   - Checkout code
-   - Set up Docker Buildx
-   - Login to Docker Hub
-   - Build and push backend image
-   - Build and push frontend image
-   - Deploy to VM with latest images
+- `DOCKER_USERNAME`: Your Docker Hub username
+- `DOCKER_PASSWORD`: Your Docker Hub password/token
+- `VM_IP`: Your VM's public IP address
+- `SSH_PRIVATE_KEY`: Complete SSH private key
 
-## 🌐 Production Deployment
+## Production Deployment
 
-### Ubuntu VM Setup
+### VM Setup
 
-1. **Install Docker and Docker Compose**
+1. **Install Docker**
    ```bash
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker ubuntu
+   ```
+
+2. **Install Docker Compose**
+   ```bash
    sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
    ```
 
-2. **Clone Repository**
+3. **Create Application Files**
    ```bash
-   git clone <your-repository-url> mean-app
-   cd mean-app
+   mkdir -p /home/ubuntu/mean-app
+   cd /home/ubuntu/mean-app
+   
+   # Create docker-compose.yml
+   nano docker-compose.yml
+   
+   # Create nginx.conf
+   nano nginx.conf
    ```
 
-3. **Update Docker Compose Configuration**
-   ```bash
-   # Replace YOUR_DOCKER_USERNAME with your actual Docker Hub username
-   sed -i 's/YOUR_DOCKER_USERNAME/your-username/g' docker-compose.yml
-   ```
+### Security Group Configuration
 
-4. **Deploy Application**
-   ```bash
-   docker-compose pull
-   docker-compose up -d
-   ```
+Required ports:
+- **Port 80**: HTTP access (required for users)
+- **Port 22**: SSH access (required for deployment)
 
-### Application Access
+Optional ports:
+- **Port 8080**: Direct backend access
+- **Port 4200**: Direct frontend access
+- **Port 27017**: MongoDB access (development only)
 
-- **Primary URL**: http://<your-vm-ip> (via Nginx)
-- **Direct Frontend**: http://<your-vm-ip>:4200
-- **Backend API**: http://<your-vm-ip>:8080
+## Application Access
 
-## 🔧 Configuration
+### Production URLs
 
-### Database Configuration
+- **Main Application**: http://your-vm-public-ip
+- **API Direct**: http://your-vm-public-ip/api/tutorials
+- **Backend Direct**: http://your-vm-public-ip:8080
 
-Update MongoDB connection in `backend/app/config/db.config.js`:
-```javascript
-module.exports = {
-  url: process.env.MONGO_URI || "mongodb://localhost:27017/dd_db"
-};
-```
+### Sharing Options
 
-### Frontend API Configuration
+1. **Direct IP**: http://your-vm-public-ip
+2. **Domain Name**: Point DNS A record to VM IP
+3. **Cloudflare**: Free SSL/CDN with domain
+4. **Ngrok**: Quick testing URL
 
-Update API endpoint in `frontend/src/app/services/tutorial.service.ts`:
-```typescript
-private baseUrl = 'http://localhost:8080'; // Update for production
-```
+## API Endpoints
 
-### Nginx Configuration
+### Tutorials CRUD
 
-The `nginx.conf` file handles:
-- Frontend routing (/)
-- Backend API routing (/api/, /tutorials)
-- Load balancing and reverse proxy
+- **GET /api/tutorials**: Get all tutorials
+- **GET /api/tutorials/:id**: Get tutorial by ID
+- **POST /api/tutorials**: Create new tutorial
+- **PUT /api/tutorials/:id**: Update tutorial
+- **DELETE /api/tutorials/:id**: Delete tutorial
 
-## 📊 Application Features
-
-- **Create**: Add new tutorials with title, description, and published status
-- **Read**: View all tutorials or search by title
-- **Update**: Modify existing tutorial details
-- **Delete**: Remove tutorials from the database
-- **Search**: Find tutorials by title using the search box
-
-## 🔍 API Endpoints
-
-- `GET /` - Welcome message
-- `GET /tutorials` - Get all tutorials
-- `GET /tutorials/:id` - Get tutorial by ID
-- `POST /tutorials` - Create new tutorial
-- `PUT /tutorials/:id` - Update tutorial
-- `DELETE /tutorials/:id` - Delete tutorial
-- `DELETE /tutorials` - Delete all tutorials
-- `GET /tutorials/published` - Get published tutorials
-- `GET /tutorials?title=<title>` - Search tutorials by title
-
-## 🛠️ Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
