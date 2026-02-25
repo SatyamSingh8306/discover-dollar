@@ -54,121 +54,14 @@ jobs:
 
             echo "=== Starting deployment ==="
 
-            # ── Install Docker if not installed ──
-            if ! command -v docker &> /dev/null; then
-              echo "Installing Docker..."
-              sudo apt-get update -y
-              sudo apt-get install -y ca-certificates curl gnupg
-              sudo install -m 0755 -d /etc/apt/keyrings
-              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-                sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-              sudo chmod a+r /etc/apt/keyrings/docker.gpg
-              echo \
-                "deb [arch=$(dpkg --print-architecture) \
-                signed-by=/etc/apt/keyrings/docker.gpg] \
-                https://download.docker.com/linux/ubuntu \
-                $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-                sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-              sudo apt-get update -y
-              sudo apt-get install -y docker-ce docker-ce-cli \
-                containerd.io docker-buildx-plugin docker-compose-plugin
-              sudo systemctl enable docker
-              sudo systemctl start docker
-              sudo usermod -aG docker ubuntu
-              echo "Docker installed successfully"
-            else
-              echo "Docker already installed"
+            echo "=== Checking for docker-compose.prod.yml ==="
+            if [ ! -f "docker-compose.prod.yml" ]; then
+              echo "ERROR: docker-compose.prod.yml not found in root directory!"
+              echo "Please create docker-compose.prod.yml in the root directory"
+              exit 1
             fi
 
-            echo "=== Creating project files ==="
-            sudo mkdir -p /home/ubuntu/mean-app
-            cd /home/ubuntu/mean-app
-
-            # ── Create docker-compose.prod.yml directly ──
-            sudo tee docker-compose.prod.yml > /dev/null <<'EOF'
-            services:
-              mongodb:
-                image: mongo:6
-                container_name: mongo
-                restart: always
-                ports:
-                  - "27017:27017"
-                volumes:
-                  - mongo-data:/data/db
-
-              backend:
-                image: DOCKER_USER_PLACEHOLDER/backend:latest
-                container_name: backend
-                restart: always
-                ports:
-                  - "8080:8080"
-                environment:
-                  - MONGO_URI=mongodb://mongodb:27017/cruddb
-                depends_on:
-                  - mongodb
-
-              frontend:
-                image: DOCKER_USER_PLACEHOLDER/frontend:latest
-                container_name: frontend
-                restart: always
-                ports:
-                  - "4200:80"
-                depends_on:
-                  - backend
-
-              nginx:
-                image: nginx:alpine
-                container_name: nginx
-                restart: always
-                ports:
-                  - "80:80"
-                volumes:
-                  - ./nginx.conf:/etc/nginx/nginx.conf
-                depends_on:
-                  - frontend
-                  - backend
-
-            volumes:
-              mongo-data:
-            EOF
-
-            # Replace placeholder with actual Docker username
-            sudo sed -i "s|DOCKER_USER_PLACEHOLDER|${{ secrets.DOCKER_USERNAME }}|g" docker-compose.prod.yml
-
-            # ── Create nginx.conf ──
-            sudo tee nginx.conf > /dev/null <<'NGINXEOF'
-            events {
-              worker_connections 1024;
-            }
-
-            http {
-              upstream frontend {
-                server frontend:80;
-              }
-
-              upstream backend {
-                server backend:8080;
-              }
-
-              server {
-                listen 80;
-
-                location / {
-                  proxy_pass http://frontend;
-                  proxy_set_header Host $host;
-                  proxy_set_header X-Real-IP $remote_addr;
-                }
-
-                location /api/ {
-                  proxy_pass http://backend;
-                  proxy_set_header Host $host;
-                  proxy_set_header X-Real-IP $remote_addr;
-                }
-              }
-            }
-            NGINXEOF
-
-            echo "=== Files created ==="
+            echo "=== Files found ==="
             ls -la
 
             # ── Login to Docker Hub ──
